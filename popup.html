@@ -1,34 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<style>
-  body {
-    font-family: system-ui;
-    padding: 10px;
-    width: 520px;
-  }
-
-  .rule {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 6px;
-    align-items: center;
-  }
-
-  .drag {
-    cursor: grab;
-  }
-
-  .emoji {
-    width: 36px;
-    text-align: center;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="utf-8">
+  <title>Prefixer</title>
+  <style>
+    /* Small, simple popup layout */
+    body { font-family: system-ui; padding: 10px; width: 520px; }
+    .rule { display: flex; gap: 4px; margin-bottom: 6px; align-items: center; }
+    .drag { cursor: grab; }
+    .emoji { width: 36px; text-align: center; cursor: pointer; }
+  </style>
 </head>
-
 <body>
+  <!-- Toggle for enabling/disabling prefixing -->
   <label>
     <input type="checkbox" id="enabled">
     Prefixes ON
@@ -40,17 +24,31 @@
   <div id="rules"></div>
 
   <hr>
-  <label>
-  Emoji separator:
-  <select id="emojiSeparator">
-    <option value=" • ">•</option>
-    <option value=" - ">-</option>
-    <option value=" | ">|</option>
-    <option value=" ">space</option>
-  </select>
-</label>
-<hr>
 
+  <!-- Custom title controls: send a temporary title to the content script -->
+  <strong>Custom tab name</strong>
+  <div class="rule">
+    <input id="customTitle" placeholder="Tab title">
+    <button id="applyTitle">Apply</button>
+    <button id="resetTitle">Reset</button>
+  </div>
+
+  <hr>
+
+  <!-- Emoji separator used when an emoji is present -->
+  <label>
+    Emoji separator:
+    <select id="emojiSeparator">
+      <option value=" • ">•</option>
+      <option value=" - ">-</option>
+      <option value=" | ">|</option>
+      <option value=" ">space</option>
+    </select>
+  </label>
+
+  <hr>
+
+  <!-- Add new rule form -->
   <strong>Add new prefix</strong>
   <div class="rule">
     <input id="newEmoji" class="emoji" placeholder="🙂">

@@ -1,7 +1,12 @@
 // popup.js
-document.addEventListener("DOMContentLoaded", () => {
-  const MAX_RULES = 7;
+// UI for the extension popup. Responsible for listing rules, adding new rules,
+// editing existing rules, and sending simple messages to the content script.
 
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Configuration ---
+  const MAX_RULES = 7; // how many rules to show inline in the popup
+
+  // --- DOM references ---
   const rulesDiv = document.getElementById("rules");
   const addBtn = document.getElementById("add");
 
@@ -10,84 +15,87 @@ document.addEventListener("DOMContentLoaded", () => {
   const newMatch = document.getElementById("newMatch");
   const newType = document.getElementById("newType");
   const enabledToggle = document.getElementById("enabled");
-
-  const EMOJIS = "😀 😁 😂 😊 😎 🤓 🧪 📄 📕 📘 📊 📈 📐 ⚛️ 🔥 ⭐".split(" ");
   const sepSelect = document.getElementById("emojiSeparator");
 
-  function cleanPrefix(v) {
-    v = v.toUpperCase().replace(/[\[\]]/g, "").trim();
+  // Short list of emoji for the picker (keeps popup compact)
+  const EMOJIS = "😀 😁 😂 😊 😎 🤓 🧪 📄 📕 📘 📊 📈 📐 ⚛️ 🔥 ⭐".split(" ");
+
+  // --- Utilities ---
+  function cleanPrefix(value) {
+    // Normalise user input into a bracketed uppercase prefix: "pdf" -> "[PDF]"
+    const v = (value || "").toUpperCase().replace(/[^A-Z]/g, "").trim();
     return `[${v}]`;
   }
 
-  // ---------------- ENABLE TOGGLE ----------------
-  chrome.storage.sync.get({ enabled: true }, d => {
-    enabledToggle.checked = d.enabled;
-  });
-  chrome.storage.sync.get({ emojiSeparator: " • " }, d => {
-  sepSelect.value = d.emojiSeparator;
-});
-sepSelect.onchange = () => {
-  chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
-};
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "sync" && changes.emojiSeparator) {
-    sepSelect.value = changes.emojiSeparator.newValue;
-  }
-});
-
-  enabledToggle.onchange = () => {
-    chrome.storage.sync.set({ enabled: enabledToggle.checked });
-  };
-
-  // ---------------- URL AUTOFILL ----------------
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-    if (!tabs[0]?.url) return;
-    if (!newMatch.value) newMatch.value = tabs[0].url;
+  // --- Load saved UI state ---
+  chrome.storage.sync.get({ enabled: true, emojiSeparator: " • " }, (d) => {
+    enabledToggle.checked = !!d.enabled;
+    sepSelect.value = d.emojiSeparator || " • ";
   });
 
-  // ---------------- EMOJI PICKER ----------------
+  // Keep the emoji separator in sync
+  sepSelect.onchange = () => chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync" && changes.emojiSeparator) sepSelect.value = changes.emojiSeparator.newValue;
+  });
+
+  // Persist the enabled toggle
+  enabledToggle.onchange = () => chrome.storage.sync.set({ enabled: enabledToggle.checked });
+
+  // If the user opens the popup on a tab, prefill the match input with the tab URL
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const url = tabs?.[0]?.url;
+    if (url && !newMatch.value) newMatch.value = url;
+  });
+
+  // --- Emoji picker UI ---
   const picker = document.createElement("div");
-  picker.style.position = "absolute";
-  picker.style.display = "none";
-  picker.style.background = "#fff";
-  picker.style.border = "1px solid #ccc";
-  picker.style.padding = "6px";
-  picker.style.zIndex = 1000;
+  picker.className = "emoji-picker";
+  Object.assign(picker.style, {
+    position: "absolute",
+    display: "none",
+    background: "#fff",
+    border: "1px solid #ccc",
+    padding: "6px",
+    zIndex: 1000
+  });
 
-  let activeInput = null;
-  let activeIndex = null;
+  let activeInput = null; // input element that requested the picker
+  let activeIndex = null; // rule index (if editing an existing rule)
 
-  EMOJIS.forEach(e => {
-    const s = document.createElement("span");
-    s.textContent = e;
-    s.style.cursor = "pointer";
-    s.style.fontSize = "18px";
-    s.style.padding = "4px";
+  // Populate picker with emoji buttons
+  EMOJIS.forEach((emoji) => {
+    const node = document.createElement("span");
+    node.textContent = emoji;
+    node.style.cursor = "pointer";
+    node.style.fontSize = "18px";
+    node.style.padding = "4px";
 
-    s.onclick = ev => {
+    node.addEventListener("click", (ev) => {
       ev.stopPropagation();
       if (!activeInput) return;
-
-      activeInput.value = e;
-      if (activeIndex !== null) updateRule(activeIndex, { emoji: e });
+      activeInput.value = emoji;
+      if (activeIndex !== null) updateRule(activeIndex, { emoji });
       picker.style.display = "none";
-    };
+    });
 
-    picker.appendChild(s);
+    picker.appendChild(node);
   });
 
   document.body.appendChild(picker);
 
   function wireEmojiInput(input, index = null) {
+    // Show emoji picker positioned below the input when focused
     input.addEventListener("focus", () => {
       const r = input.getBoundingClientRect();
-      picker.style.left = r.left + "px";
-      picker.style.top = r.bottom + "px";
+      picker.style.left = `${r.left}px`;
+      picker.style.top = `${r.bottom}px`;
       picker.style.display = "block";
       activeInput = input;
       activeIndex = index;
     });
 
+    // Keep only the first character (emoji) and immediately persist
     input.addEventListener("input", () => {
       const chars = [...input.value];
       input.value = chars[0] || "";
@@ -95,7 +103,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     });
   }
 
-  document.addEventListener("click", e => {
+  document.addEventListener("click", (e) => {
     if (!picker.contains(e.target) && !e.target.classList.contains("emoji")) {
       picker.style.display = "none";
       activeInput = null;
@@ -105,77 +113,94 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
   wireEmojiInput(newEmoji);
 
-  // ---------------- RENDER ----------------
+  // --- Rule rendering / editing ---
   function render(rules) {
     rulesDiv.innerHTML = "";
-
-    rules.slice(0, MAX_RULES).forEach((rule, index) => {
+    (rules || []).slice(0, MAX_RULES).forEach((rule, index) => {
       const row = document.createElement("div");
       row.className = "rule";
 
+      // Keep markup small and predictable; attach listeners afterwards
       row.innerHTML = `
         <span class="drag">☰</span>
         <input class="emoji" value="${rule.emoji || ""}">
-        <input class="prefix" value="${rule.prefix}">
-        <input class="match" value="${rule.match}">
+        <input class="prefix" value="${rule.prefix || ""}">
+        <input class="match" value="${rule.match || ""}">
         <select class="type">
-          <option value="keyword" ${rule.type==="keyword"?"selected":""}>keyword</option>
-          <option value="url" ${rule.type==="url"?"selected":""}>url</option>
-          <option value="extension" ${rule.type==="extension"?"selected":""}>extension</option>
+          <option value="keyword" ${rule.type === "keyword" ? "selected" : ""}>keyword</option>
+          <option value="url" ${rule.type === "url" ? "selected" : ""}>url</option>
+          <option value="extension" ${rule.type === "extension" ? "selected" : ""}>extension</option>
         </select>
-        <input class="toggle" type="checkbox" ${rule.enabled?"checked":""}>
+        <input class="toggle" type="checkbox" ${rule.enabled ? "checked" : ""}>
         <button class="del">✕</button>
       `;
 
       wireEmojiInput(row.querySelector(".emoji"), index);
 
-      row.querySelector(".prefix").onchange = e =>
-        updateRule(index, { prefix: cleanPrefix(e.target.value) });
-
-      row.querySelector(".match").onchange = e =>
-        updateRule(index, { match: e.target.value.toLowerCase() });
-
-      row.querySelector(".type").onchange = e =>
-        updateRule(index, { type: e.target.value });
-
-      row.querySelector(".toggle").onchange = e =>
-        updateRule(index, { enabled: e.target.checked });
-
+      row.querySelector(".prefix").onchange = (e) => updateRule(index, { prefix: cleanPrefix(e.target.value) });
+      row.querySelector(".match").onchange = (e) => updateRule(index, { match: e.target.value.toLowerCase() });
+      row.querySelector(".type").onchange = (e) => updateRule(index, { type: e.target.value });
+      row.querySelector(".toggle").onchange = (e) => updateRule(index, { enabled: e.target.checked });
       row.querySelector(".del").onclick = () => deleteRule(index);
 
       rulesDiv.appendChild(row);
     });
 
-    if (rules.length > MAX_RULES) {
+    if ((rules || []).length > MAX_RULES) {
       const more = document.createElement("button");
       more.textContent = "See more";
-      more.onclick = () =>
-        chrome.tabs.create({ url: chrome.runtime.getURL("manager.html") });
+      more.onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL("manager.html") });
       rulesDiv.appendChild(more);
     }
   }
 
   function updateRule(index, patch) {
-    chrome.storage.sync.get({ rules: [] }, d => {
+    // Patch a rule at index and re-render.
+    chrome.storage.sync.get({ rules: [] }, (d) => {
+      if (!d.rules[index]) return; // defensive
       Object.assign(d.rules[index], patch);
       chrome.storage.sync.set({ rules: d.rules }, () => render(d.rules));
     });
   }
 
   function deleteRule(index) {
-    chrome.storage.sync.get({ rules: [] }, d => {
+    chrome.storage.sync.get({ rules: [] }, (d) => {
       d.rules.splice(index, 1);
       chrome.storage.sync.set({ rules: d.rules }, () => render(d.rules));
     });
   }
 
-  // ---------------- ADD RULE ----------------
+  // --- Custom title controls ---
+  const input = document.getElementById("customTitle");
+  const applyBtn = document.getElementById("applyTitle");
+  const resetBtn = document.getElementById("resetTitle");
+
+  applyBtn.onclick = () => {
+    const value = (input.value || "").trim();
+    if (!value) return;
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (!tab?.id) return;
+      chrome.tabs.sendMessage(tab.id, { type: "SET_CUSTOM_TITLE", title: value });
+    });
+  };
+
+  resetBtn.onclick = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (!tab?.id) return;
+      chrome.tabs.sendMessage(tab.id, { type: "RESET_CUSTOM_TITLE" });
+    });
+  };
+
+  // --- Add new rule ---
   addBtn.onclick = () => {
     if (!newPrefix.value || !newMatch.value) return;
 
-    chrome.storage.sync.get({ rules: [] }, d => {
+    chrome.storage.sync.get({ rules: [] }, (d) => {
       d.rules.unshift({
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
         emoji: newEmoji.value || "",
         prefix: cleanPrefix(newPrefix.value),
         match: newMatch.value.toLowerCase(),
@@ -192,5 +217,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
     });
   };
 
-  chrome.storage.sync.get({ rules: [] }, d => render(d.rules));
+  // Initial render
+  chrome.storage.sync.get({ rules: [] }, (d) => render(d.rules || []));
 });
