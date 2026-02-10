@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>[PRE]fix – Rule Manager</title>
+</head>
+<body>
+  <h1>All Prefix Rules</h1>
+
+  <div id="rules"></div>
+
+  <hr>
+
+  <h2>Add new prefix</h2>
+  <div class="rule">
+    <input id="newPrefix" placeholder="PDF">
+    <input id="newMatch" placeholder="keyword / url / .ext">
+    <select id="newType">
+      <option value="keyword">keyword</option>
+      <option value="url">url</option>
+      <option value="extension">extension</option>
+    </select>
+    <button id="add">Add</button>
+  </div>
+
+  <script src="manager.js"></script>
+</body>
+</html>
