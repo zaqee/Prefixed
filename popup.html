@@ -3,32 +3,57 @@
 <head>
 <meta charset="utf-8">
 <style>
-body { font-family: system-ui; padding: 10px; width: 500px; }
-.rule { display: flex; gap: 4px; margin-bottom: 6px; align-items: center; }
-.drag { cursor: grab; }
+  body {
+    font-family: system-ui;
+    padding: 10px;
+    width: 520px;
+  }
+
+  .rule {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+
+  .drag {
+    cursor: grab;
+  }
+
+  .emoji {
+    width: 36px;
+    text-align: center;
+    cursor: pointer;
+  }
 </style>
 </head>
+
 <body>
-<label><input type="checkbox" id="enabled"> Prefixes ON</label>
-<hr>
-<strong>Priority (top wins)</strong>
-<div id="rules"></div>
+  <label>
+    <input type="checkbox" id="enabled">
+    Prefixes ON
+  </label>
 
+  <hr>
 
-<hr>
-<strong>Add new prefix</strong>
-<div class="rule">
-<input id="newPrefix" placeholder="PDF">
-<input id="newMatch" placeholder="keyword / url / .ext">
-<select id="newType">
-<option value="keyword">keyword</option>
-<option value="url">url</option>
-<option value="extension">extension</option>
-</select>
-<button id="add">Add</button>
-</div>
+  <strong>Priority (top wins)</strong>
+  <div id="rules"></div>
 
+  <hr>
 
-<script src="popup.js"></script>
+  <strong>Add new prefix</strong>
+  <div class="rule">
+    <input id="newEmoji" class="emoji" placeholder="🙂">
+    <input id="newPrefix" placeholder="PRE">
+    <input id="newMatch" placeholder="keyword / url / .ext">
+    <select id="newType">
+      <option value="keyword">keyword</option>
+      <option value="url">url</option>
+      <option value="extension">extension</option>
+    </select>
+    <button id="add">Add</button>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

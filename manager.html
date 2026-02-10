@@ -3,7 +3,28 @@
 <head>
   <meta charset="utf-8">
   <title>[PRE]fix – Rule Manager</title>
+
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 12px;
+    }
+
+    .rule {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .emoji {
+      width: 36px;
+      text-align: center;
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
   <h1>All Prefix Rules</h1>
 
@@ -13,7 +34,8 @@
 
   <h2>Add new prefix</h2>
   <div class="rule">
-    <input id="newPrefix" placeholder="PDF">
+    <input id="newEmoji" class="emoji" placeholder="🙂">
+    <input id="newPrefix" placeholder="PRE">
     <input id="newMatch" placeholder="keyword / url / .ext">
     <select id="newType">
       <option value="keyword">keyword</option>
