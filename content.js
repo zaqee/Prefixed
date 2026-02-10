@@ -17,7 +17,12 @@ const DEFAULT_RULES = [
 ];
 
 
-  const DEFAULTS = { enabled: true, rules: null };
+const DEFAULTS = {
+  enabled: true,
+  rules: null,
+  emojiSeparator: " • "
+};
+
 
   chrome.storage.sync.get(DEFAULTS, data => {
     if (!data.rules) {
@@ -50,17 +55,18 @@ const DEFAULT_RULES = [
   }
 
   // 🔹 ADDITIVE: emoji support only
-  function resolvePrefix(url, title, rules) {
-    for (const rule of rules) {
-      if (ruleMatches(rule, url, title)) {
-        if (rule.emoji) {
-          return `${rule.emoji} • ${rule.prefix}`;
-        }
-        return rule.prefix;
+function resolvePrefix(url, title, rules, sep) {
+  for (const rule of rules) {
+    if (ruleMatches(rule, url, title)) {
+      if (rule.emoji) {
+        return `${rule.emoji}${sep}${rule.prefix}`;
       }
+      return rule.prefix;
     }
-    return null;
   }
+  return null;
+}
+
 
   function apply() {
     chrome.storage.sync.get(DEFAULTS, s => {
@@ -70,11 +76,17 @@ const DEFAULT_RULES = [
       if (!titleEl) return;
 
       // 🔹 ADDITIVE: safely strip emoji + prefix OR prefix only
-      const cleanTitle = titleEl.textContent
-        .replace(/^[^\[]+•\s*/, "")
-        .replace(/^\[[^\]]+\]\s*/, "");
+const cleanTitle = titleEl.textContent
+  // remove emoji + separator we added
+  .replace(/^([\p{Emoji}\uFE0F]+)\s*(•|-|\|)?\s*/u, "")
+  // remove [PREFIX]
+  .replace(/^\[[^\]]+\]\s*/, "");
 
-      const prefix = resolvePrefix(location.href, cleanTitle, s.rules);
+
+
+      const sep = s.emojiSeparator || " • ";
+const prefix = resolvePrefix(location.href, cleanTitle, s.rules, sep);
+
       if (!prefix) return;
 
       const newTitle = `${prefix} ${cleanTitle}`;

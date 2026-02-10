@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const enabledToggle = document.getElementById("enabled");
 
   const EMOJIS = "😀 😁 😂 😊 😎 🤓 🧪 📄 📕 📘 📊 📈 📐 ⚛️ 🔥 ⭐".split(" ");
+  const sepSelect = document.getElementById("emojiSeparator");
 
   function cleanPrefix(v) {
     v = v.toUpperCase().replace(/[\[\]]/g, "").trim();
@@ -22,6 +23,17 @@ document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync.get({ enabled: true }, d => {
     enabledToggle.checked = d.enabled;
   });
+  chrome.storage.sync.get({ emojiSeparator: " • " }, d => {
+  sepSelect.value = d.emojiSeparator;
+});
+sepSelect.onchange = () => {
+  chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
+};
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.emojiSeparator) {
+    sepSelect.value = changes.emojiSeparator.newValue;
+  }
+});
 
   enabledToggle.onchange = () => {
     chrome.storage.sync.set({ enabled: enabledToggle.checked });

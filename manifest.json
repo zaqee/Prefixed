@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "[PRE]fixed – Tab Title Prefixer",
-  "version": "3.4.4",
+  "version": "3.5.3",
   "description": "Readable, prioritised prefixes for browser tabs.",
 
   "permissions": ["storage", "tabs"],

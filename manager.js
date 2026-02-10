@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const newType = document.getElementById("newType");
 
   const EMOJIS = "😀 😁 😂 😊 😎 🤓 🧪 📄 📕 📘 📊 📈 📐 ⚛️ 🔥 ⭐".split(" ");
+  const sepSelect = document.getElementById("emojiSeparator");
 
   function cleanPrefix(v) {
     v = v.toUpperCase().replace(/[\[\]]/g, "").trim();
@@ -74,6 +75,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   wireEmojiInput(newEmoji);
+
+chrome.storage.sync.get({ emojiSeparator: " • " }, d => {
+  sepSelect.value = d.emojiSeparator;
+});
+
+sepSelect.onchange = () => {
+  chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
+};
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.emojiSeparator) {
+    sepSelect.value = changes.emojiSeparator.newValue;
+  }
+});
+
 
   // ---------------- RENDER ----------------
   function render(rules) {
