@@ -1,12 +1,13 @@
 // content.js
 // This script runs in page context and updates the document title by
 // applying a single prefix per tab. Priority is determined by the order
+// adding custom tab names
+// hirarchy of custom tab > prefix > defualt tittle.
 // of the stored rules (first matching rule wins). The script supports
 // emoji prefixes (emoji + separator + prefix) and plain bracketed prefixes.
 
 (function () {
-  // Default rules used to seed storage if none exist. Keep these small
-  // and predictable; users can customize through the popup.
+  // Default rules used to seed storage if none exist.
   const DEFAULT_RULES = [
     { id: "yt", enabled: true, emoji: "📺", prefix: "[YT]", match: "youtube.com", type: "url" },
     { id: "gdoc", enabled: true, emoji: "📄", prefix: "[DOC]", match: "docs.google.com/document", type: "url" },
@@ -20,23 +21,6 @@
     { id: "phys", enabled: true, emoji: "⚛️", prefix: "[PHYS]", match: "physics phys", type: "keyword" },
     { id: "math", enabled: true, emoji: "📐", prefix: "[MATHS]", match: "math maths algebra calculus", type: "keyword" }
   ];
-
-  // Temporary custom title state (set via popup UI). When set, it overrides
-  // all prefix logic until reset.
-  let tempCustomTitle = null;
-
-  // Listen for simple messages from the popup to set/reset a temporary title.
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "SET_CUSTOM_TITLE") {
-      tempCustomTitle = msg.title || null;
-      apply(); // re-run immediately
-    }
-
-    if (msg.type === "RESET_CUSTOM_TITLE") {
-      tempCustomTitle = null;
-      apply();
-    }
-  });
 
   const DEFAULTS = { enabled: true, rules: null, emojiSeparator: " • " };
 
@@ -92,29 +76,44 @@
   // Apply prefix logic to the current tab title. This function is safe to run
   // repeatedly; it will avoid re-writing the title if nothing changed.
   function apply() {
-    const titleEl = document.querySelector("title");
-    if (!titleEl) return;
+  const titleEl = document.querySelector("title");
+  if (!titleEl) return;
 
-    // Highest priority: if popup set a temporary custom title, honour it
-    if (tempCustomTitle) {
-      if (titleEl.textContent !== tempCustomTitle) titleEl.textContent = tempCustomTitle;
-      return; // skip prefixing while custom title is active
-    }
+  chrome.storage.sync.get(DEFAULTS, (s) => {
+    if (!s.enabled) return;
 
-    chrome.storage.sync.get(DEFAULTS, (s) => {
-      if (!s.enabled || !s.rules) return;
+    chrome.storage.sync.get({ customTitles: {} }, (data) => {
+      const tabId = chrome.devtools ? null : null;
+    });
+  });
 
-      const titleElInner = document.querySelector("title");
-      if (!titleElInner) return;
+  chrome.storage.sync.get({ customTitles: {}, ...DEFAULTS }, (s) => {
+    if (!s.enabled) return;
 
-      // Strip any previously added emoji + separator or [PREFIX] so matching is performed
-      // against a clean title. This uses a small, forgiving regex for emoji.
+    const titleElInner = document.querySelector("title");
+    if (!titleElInner) return;
+
+    // GET CURRENT TAB ID
+    chrome.runtime.sendMessage({ getTabId: true }, (tabId) => {
+      if (!tabId) return;
+
+      const customTitle = s.customTitles[tabId];
+
+      // PRIORITY 1: Custom title overrides EVERYTHING
+      if (customTitle) {
+        if (titleElInner.textContent !== customTitle) {
+          titleElInner.textContent = customTitle;
+        }
+        return;
+      }
+
+      // PREFIX LOGIC
+      if (!s.rules) return;
+
       const raw = titleElInner.textContent || "";
 
       const cleanTitle = raw
-        // remove leading emoji + separator we added previously (e.g. "📕 • ")
         .replace(/^([\p{Emoji}\uFE0F]+)\s*(•|-|\||\s)?\s*/u, "")
-        // remove leading bracketed prefix e.g. "[PDF] "
         .replace(/^\[[^\]]+\]\s*/, "");
 
       const sep = s.emojiSeparator || " • ";
@@ -122,9 +121,14 @@
       if (!prefix) return;
 
       const newTitle = `${prefix} ${cleanTitle}`;
-      if (titleElInner.textContent !== newTitle) titleElInner.textContent = newTitle;
+      if (titleElInner.textContent !== newTitle) {
+        titleElInner.textContent = newTitle;
+      }
     });
-  }
+  });
+}
+
+
 
   // Observe title changes and re-apply prefix when title updates
   function observe() {

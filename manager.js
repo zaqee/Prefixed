@@ -1,4 +1,5 @@
 // manager.js
+// mirrors the rules management UI found in the popup but is a full page and can show more rules at once. Useful for users who want a more comprehensive management interface.
 document.addEventListener("DOMContentLoaded", () => {
   const rulesDiv = document.getElementById("rules");
   const addBtn = document.getElementById("add");

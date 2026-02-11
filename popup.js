@@ -9,7 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- DOM references ---
   const rulesDiv = document.getElementById("rules");
   const addBtn = document.getElementById("add");
-
+  const input = document.getElementById("customTitle");
+  const applyBtn = document.getElementById("applyTitle");
+  const resetBtn = document.getElementById("resetTitle");
   const newEmoji = document.getElementById("newEmoji");
   const newPrefix = document.getElementById("newPrefix");
   const newMatch = document.getElementById("newMatch");
@@ -26,7 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const v = (value || "").toUpperCase().replace(/[^A-Z]/g, "").trim();
     return `[${v}]`;
   }
-
+  chrome.tabs.onActivated.addListener(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (tab?.title) input.value = tab.title;
+    });
+  });
+  
   // --- Load saved UI state ---
   chrome.storage.sync.get({ enabled: true, emojiSeparator: " • " }, (d) => {
     enabledToggle.checked = !!d.enabled;
@@ -44,9 +52,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // If the user opens the popup on a tab, prefill the match input with the tab URL
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const url = tabs?.[0]?.url;
-    if (url && !newMatch.value) newMatch.value = url;
+    const tab = tabs?.[0];
+    if (!tab) return;
+  
+    // Prefill match field (you already had this)
+    if (tab.url && !newMatch.value) {
+      newMatch.value = tab.url;
+    }
+  
+    // 🔥 NEW: Prefill custom title field
+    if (tab.title && !input.value) {
+      input.value = tab.title;
+    }
   });
+  
 
   // --- Emoji picker UI ---
   const picker = document.createElement("div");
@@ -171,28 +190,46 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Custom title controls ---
-  const input = document.getElementById("customTitle");
-  const applyBtn = document.getElementById("applyTitle");
-  const resetBtn = document.getElementById("resetTitle");
 
   applyBtn.onclick = () => {
-    const value = (input.value || "").trim();
-    if (!value) return;
+  const value = (input.value || "").trim();
+  if (!value) return;
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs?.[0];
-      if (!tab?.id) return;
-      chrome.tabs.sendMessage(tab.id, { type: "SET_CUSTOM_TITLE", title: value });
-    });
-  };
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs?.[0];
+    if (!tab?.id) return;
 
-  resetBtn.onclick = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs?.[0];
-      if (!tab?.id) return;
-      chrome.tabs.sendMessage(tab.id, { type: "RESET_CUSTOM_TITLE" });
+    chrome.storage.sync.get({ customTitles: {} }, (data) => {
+      const customTitles = data.customTitles;
+      customTitles[tab.id] = value;
+
+      chrome.storage.sync.set({ customTitles }, () => {
+        chrome.tabs.reload(tab.id);
+      });
     });
-  };
+  });
+};
+
+resetBtn.onclick = () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs?.[0];
+    if (!tab?.id) return;
+
+    chrome.storage.sync.get({ customTitles: {} }, (data) => {
+      const customTitles = data.customTitles;
+      delete customTitles[tab.id];
+
+      chrome.storage.sync.set({ customTitles }, () => {
+        chrome.tabs.reload(tab.id);
+      });
+    });
+  });
+};
+
+  
+  
+  
+  
 
   // --- Add new rule ---
   addBtn.onclick = () => {

@@ -1,9 +1,7 @@
 // background.js
-chrome.runtime.onInstalled.addListener(() => {});
-
-
+//Listens for messages from content scripts and responds with the tab ID when requested.
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "GET_TAB_ID") {
-    sendResponse({ tabId: sender.tab.id });
+  if (msg.getTabId && sender.tab?.id) {
+    sendResponse(sender.tab.id);
   }
 });
