@@ -1,67 +1,563 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
-  <title>Prefixer</title>
+  <title>[PRE]fixed</title>
   <style>
-    /* Small, simple popup layout */
-    body { font-family: system-ui; padding: 10px; width: 520px; }
-    .rule { display: flex; gap: 4px; margin-bottom: 6px; align-items: center; }
-    .drag { cursor: grab; }
-    .emoji { width: 36px; text-align: center; cursor: pointer; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cascadia Code', monospace;
+      width: 330px;
+      background: white;
+      color: black;
+    }
+
+    /* Header */
+    .header {
+      background: black;
+      color: white;
+      padding: 10px 12px;
+      border-bottom: 2px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-label {
+      font-size: 10px;
+      opacity: 0.7;
+      transition: opacity 150ms;
+    }
+
+    .toggle-container:hover .toggle-label {
+      opacity: 1;
+    }
+
+    /* Custom Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      width: 38px;
+      height: 20px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 200ms;
+    }
+
+    .toggle-switch input:checked+.toggle-track {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .toggle-switch input:focus+.toggle-track {
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 200ms;
+    }
+
+    .toggle-switch input:checked~.toggle-thumb {
+      transform: translateX(18px);
+      background: black;
+    }
+
+    /* Main Content */
+    .content {
+      padding: 12px;
+    }
+
+    .section {
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .separator {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 14px 0;
+    }
+
+    /* Inputs */
+    input[type="text"],
+    input[type="search"],
+    select {
+      font-family: 'Cascadia Code', monospace;
+      font-size: 11px;
+      padding: 6px 8px;
+      border: 2px solid #d1d5db;
+      background: white;
+      transition: border-color 150ms;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="search"]:focus,
+    select:focus {
+      border-color: black;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    button {
+      font-family: 'Cascadia Code', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 10px;
+      border: 2px solid;
+      cursor: pointer;
+      transition: all 150ms;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .btn-primary {
+      background: black;
+      color: white;
+      border-color: black;
+    }
+
+    .btn-primary:hover {
+      background: #1f2937;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: black;
+      border-color: #d1d5db;
+    }
+
+    .btn-secondary:hover {
+      background: #f3f4f6;
+      border-color: black;
+    }
+
+    /* Custom Title Section */
+    .title-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    #customTitle {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .btn-icon {
+      padding: 6px 8px;
+    }
+
+    /* Rules */
+    #rules {
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      padding: 6px;
+      transition: all 150ms;
+    }
+
+    .rule-item:hover {
+      border-color: black;
+      background: white;
+    }
+
+    .drag {
+      cursor: grab;
+      color: #d1d5db;
+      transition: color 150ms;
+      line-height: 0;
+      flex-shrink: 0;
+    }
+
+    .rule-item:hover .drag {
+      color: black;
+    }
+
+    .drag:active {
+      cursor: grabbing;
+    }
+
+    .emoji {
+      width: 32px;
+      height: 28px;
+      text-align: center;
+      font-size: 12px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .rule-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      min-width: 0;
+    }
+
+    .rule-prefix {
+      font-weight: 600;
+      color: black;
+      flex-shrink: 0;
+    }
+
+    .rule-match {
+      flex: 1;
+      color: #6b7280;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .rule-type {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+      background: #f3f4f6;
+      padding: 2px 4px;
+      border: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .btn-delete {
+      width: 15px;
+      height: 15px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d1d5db;
+      background: transparent;
+      border: 1px solid transparent;
+      opacity: 0;
+      transition: all 150ms;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .rule-item:hover .btn-delete {
+      opacity: 1;
+    }
+
+    .btn-delete:hover {
+      color: white;
+      background: black;
+      border-color: black;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 16px;
+      color: #9ca3af;
+      font-size: 10px;
+      border: 2px dashed #e5e7eb;
+    }
+
+    /* Emoji Separator */
+    #emojiSeparator {
+      width: 100%;
+    }
+
+    /* Add New Rule */
+    .add-rule-form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    #newEmoji {
+      width: 36px;
+      text-align: center;
+      font-size: 14px;
+      padding: 6px 4px;
+    }
+
+    #newPrefix {
+      width: 70px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    #newMatch {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #newType {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Section header with subtitle */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .section-subtitle {
+      font-size: 9px;
+      color: #9ca3af;
+    }
+
+    /* Icons (using Unicode) */
+    .icon {
+      display: inline-block;
+      line-height: 1;
+      font-size: 11px;
+    }
+
+    /* Scrollbar styling */
+    #rules::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #rules::-webkit-scrollbar-track {
+      background: #f3f4f6;
+    }
+
+    #rules::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+    }
+
+    #rules::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 635px) {
+      .header {
+        padding: 12px;
+      }
+
+      .header h1 {
+        font-size: 14px;
+      }
+
+      .content {
+        padding: 12px;
+      }
+
+      .toggle-label {
+        display: none;
+      }
+
+      button {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+
+      .btn-icon {
+        padding: 6px 8px;
+      }
+
+      #newEmoji {
+        width: 40px;
+      }
+
+      #newPrefix {
+        width: 80px;
+      }
+
+      .rule-prefix {
+        min-width: 40px;
+      }
+
+      .input-row {
+        flex-wrap: wrap;
+      }
+
+      .input-row>input[type="text"]:not(#newEmoji):not(#newPrefix) {
+        flex: 1 1 50%;
+      }
+    }
+
+    @media (min-width: 330px) {
+      .header {
+        padding: 20px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      input[type="text"],
+      input[type="search"],
+      select {
+        font-size: 13px;
+        padding: 10px 0px;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 10px 18px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <!-- Toggle for enabling/disabling prefixing -->
-  <label>
-    <input type="checkbox" id="enabled">
-    Prefixes ON
-  </label>
-
-  <hr>
-
-  <strong>Priority (top wins)</strong>
-  <div id="rules"></div>
-
-  <hr>
-
-  <!-- Custom title controls: send a temporary title to the content script -->
-  <strong>Custom tab name</strong>
-  <div class="rule">
-    <input id="customTitle" placeholder="Tab title">
-    <button id="applyTitle">Apply</button>
-    <button id="resetTitle">Reset</button>
+  <!-- Header with Toggle -->
+  <div class="header">
+    <h1>[PRE]fixed</h1>
+    <label class="toggle-container">
+      <span class="toggle-label" id="toggleStatus">OFF</span>
+      <div class="toggle-switch">
+        <input type="checkbox" id="enabled">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </div>
+    </label>
   </div>
 
-  <hr>
+  <div class="content">
+    <!-- Custom Tab Name -->
+    <div class="section">
+      <div class="section-title">Custom Tab Name</div>
+      <div class="title-controls">
+        <input type="text" id="customTitle" placeholder="Enter custom title...">
+        <button id="applyTitle" class="btn-primary">
+          <span class="icon">✓</span> Apply
+        </button>
+        <button id="resetTitle" class="btn-secondary btn-icon">
+          <span class="icon">↻</span>
+        </button>
+      </div>
+    </div>
 
-  <!-- Emoji separator used when an emoji is present -->
-  <label>
-    Emoji separator:
-    <select id="emojiSeparator">
-      <option value=" • ">•</option>
-      <option value=" - ">-</option>
-      <option value=" | ">|</option>
-      <option value=" ">space</option>
-    </select>
-  </label>
+    <div class="separator"></div>
 
-  <hr>
+    <!-- Priority Rules -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Priority Rules</div>
+        <div class="section-subtitle">Top wins</div>
+      </div>
+      <div id="rules">
+        <!-- Rules will be inserted here by JavaScript -->
+      </div>
+    </div>
 
-  <!-- Add new rule form -->
-  <strong>Add new prefix</strong>
-  <div class="rule">
-    <input id="newEmoji" class="emoji" placeholder="🙂">
-    <input id="newPrefix" placeholder="PRE">
-    <input id="newMatch" placeholder="keyword / url / .ext">
-    <select id="newType">
-      <option value="keyword">keyword</option>
-      <option value="url">url</option>
-      <option value="extension">extension</option>
-    </select>
-    <button id="add">Add</button>
+    <div class="separator"></div>
+
+    <!-- Emoji Separator -->
+    <div class="section">
+      <div class="section-title">Emoji Separator</div>
+      <select id="emojiSeparator">
+        <option value=" • ">• (bullet)</option>
+        <option value=" - ">- (dash)</option>
+        <option value=" | ">| (pipe)</option>
+        <option value=" ">(space)</option>
+      </select>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Add New Rule -->
+    <div class="section">
+      <div class="section-title">Add New Prefix</div>
+      <div class="add-rule-form">
+        <div class="input-row">
+          <input type="text" id="newEmoji" placeholder="🙂">
+          <input type="text" id="newPrefix" placeholder="PREFIX">
+          <input type="text" id="newMatch" placeholder="keyword / url / .ext">
+        </div>
+        <div class="input-row">
+          <select id="newType">
+            <option value="keyword">Keyword Match</option>
+            <option value="url">URL Match</option>
+            <option value="extension">Extension Match</option>
+          </select>
+          <button id="add" class="btn-primary">
+            <span class="icon">+</span> Add Rule
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>
-</body>
-</html>

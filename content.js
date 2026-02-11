@@ -76,57 +76,57 @@
   // Apply prefix logic to the current tab title. This function is safe to run
   // repeatedly; it will avoid re-writing the title if nothing changed.
   function apply() {
-  const titleEl = document.querySelector("title");
-  if (!titleEl) return;
+    const titleEl = document.querySelector("title");
+    if (!titleEl) return;
 
-  chrome.storage.sync.get(DEFAULTS, (s) => {
-    if (!s.enabled) return;
+    chrome.storage.sync.get(DEFAULTS, (s) => {
+      if (!s.enabled) return;
 
-    chrome.storage.sync.get({ customTitles: {} }, (data) => {
-      const tabId = chrome.devtools ? null : null;
+      chrome.storage.sync.get({ customTitles: {} }, (data) => {
+        const tabId = chrome.devtools ? null : null;
+      });
     });
-  });
 
-  chrome.storage.sync.get({ customTitles: {}, ...DEFAULTS }, (s) => {
-    if (!s.enabled) return;
+    chrome.storage.sync.get({ customTitles: {}, ...DEFAULTS }, (s) => {
+      if (!s.enabled) return;
 
-    const titleElInner = document.querySelector("title");
-    if (!titleElInner) return;
+      const titleElInner = document.querySelector("title");
+      if (!titleElInner) return;
 
-    // GET CURRENT TAB ID
-    chrome.runtime.sendMessage({ getTabId: true }, (tabId) => {
-      if (!tabId) return;
+      // GET CURRENT TAB ID
+      chrome.runtime.sendMessage({ getTabId: true }, (tabId) => {
+        if (!tabId) return;
 
-      const customTitle = s.customTitles[tabId];
+        const customTitle = s.customTitles[tabId];
 
-      // PRIORITY 1: Custom title overrides EVERYTHING
-      if (customTitle) {
-        if (titleElInner.textContent !== customTitle) {
-          titleElInner.textContent = customTitle;
+        // PRIORITY 1: Custom title overrides EVERYTHING
+        if (customTitle) {
+          if (titleElInner.textContent !== customTitle) {
+            titleElInner.textContent = customTitle;
+          }
+          return;
         }
-        return;
-      }
 
-      // PREFIX LOGIC
-      if (!s.rules) return;
+        // PREFIX LOGIC
+        if (!s.rules) return;
 
-      const raw = titleElInner.textContent || "";
+        const raw = titleElInner.textContent || "";
 
-      const cleanTitle = raw
-        .replace(/^([\p{Emoji}\uFE0F]+)\s*(•|-|\||\s)?\s*/u, "")
-        .replace(/^\[[^\]]+\]\s*/, "");
+        const cleanTitle = raw
+          .replace(/^([\p{Emoji}\uFE0F]+)\s*(•|-|\||\s)?\s*/u, "")
+          .replace(/^\[[^\]]+\]\s*/, "");
 
-      const sep = s.emojiSeparator || " • ";
-      const prefix = resolvePrefix(location.href, cleanTitle, s.rules, sep);
-      if (!prefix) return;
+        const sep = s.emojiSeparator || " • ";
+        const prefix = resolvePrefix(location.href, cleanTitle, s.rules, sep);
+        if (!prefix) return;
 
-      const newTitle = `${prefix} ${cleanTitle}`;
-      if (titleElInner.textContent !== newTitle) {
-        titleElInner.textContent = newTitle;
-      }
+        const newTitle = `${prefix} ${cleanTitle}`;
+        if (titleElInner.textContent !== newTitle) {
+          titleElInner.textContent = newTitle;
+        }
+      });
     });
-  });
-}
+  }
 
 
 

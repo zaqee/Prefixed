@@ -1,120 +1,121 @@
-// popup.js
-// UI for the extension popup. Responsible for listing rules, adding new rules,
-// editing existing rules, and sending simple messages to the content script.
+//popup.js
+// This script manages the popup UI for the extension, allowing users to add/edit/delete rules for prefixing tab titles, set custom titles for specific tabs, and configure settings like enabling/disabling the extension and choosing an emoji separator. It interacts with chrome.storage to persist user settings and rules, and communicates with content scripts to apply changes immediately.
 
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Configuration ---
-  const MAX_RULES = 7; // how many rules to show inline in the popup
 
-  // --- DOM references ---
   const rulesDiv = document.getElementById("rules");
   const addBtn = document.getElementById("add");
   const input = document.getElementById("customTitle");
   const applyBtn = document.getElementById("applyTitle");
   const resetBtn = document.getElementById("resetTitle");
+
   const newEmoji = document.getElementById("newEmoji");
   const newPrefix = document.getElementById("newPrefix");
   const newMatch = document.getElementById("newMatch");
   const newType = document.getElementById("newType");
+
   const enabledToggle = document.getElementById("enabled");
   const sepSelect = document.getElementById("emojiSeparator");
 
-  // Short list of emoji for the picker (keeps popup compact)
   const EMOJIS = "😀 😁 😂 😊 😎 🤓 🧪 📄 📕 📘 📊 📈 📐 ⚛️ 🔥 ⭐".split(" ");
 
-  // --- Utilities ---
-  function cleanPrefix(value) {
-    // Normalise user input into a bracketed uppercase prefix: "pdf" -> "[PDF]"
-    const v = (value || "").toUpperCase().replace(/[^A-Z]/g, "").trim();
+  function cleanPrefix(v) {
+    v = (v || "").toUpperCase().replace(/[\[\]]/g, "").trim();
     return `[${v}]`;
   }
-  chrome.tabs.onActivated.addListener(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs?.[0];
-      if (tab?.title) input.value = tab.title;
-    });
-  });
-  
-  // --- Load saved UI state ---
-  chrome.storage.sync.get({ enabled: true, emojiSeparator: " • " }, (d) => {
-    enabledToggle.checked = !!d.enabled;
-    sepSelect.value = d.emojiSeparator || " • ";
-  });
 
-  // Keep the emoji separator in sync
-  sepSelect.onchange = () => chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "sync" && changes.emojiSeparator) sepSelect.value = changes.emojiSeparator.newValue;
-  });
-
-  // Persist the enabled toggle
-  enabledToggle.onchange = () => chrome.storage.sync.set({ enabled: enabledToggle.checked });
-
-  // If the user opens the popup on a tab, prefill the match input with the tab URL
+  // ---------------- AUTO FILL CURRENT TAB ----------------
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs?.[0];
     if (!tab) return;
-  
-    // Prefill match field (you already had this)
-    if (tab.url && !newMatch.value) {
-      newMatch.value = tab.url;
-    }
-  
-    // 🔥 NEW: Prefill custom title field
-    if (tab.title && !input.value) {
-      input.value = tab.title;
-    }
-  });
-  
 
-  // --- Emoji picker UI ---
+    if (tab.url && !newMatch.value) newMatch.value = tab.url;
+    if (tab.title && !input.value) input.value = tab.title;
+  });
+
+  // ---------------- CUSTOM TITLE ----------------
+  // ---------------- CUSTOM TAB NAME ----------------
+
+  applyBtn.onclick = () => {
+    const newTitle = input.value.trim();
+    if (!newTitle) return;
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab) return;
+
+      chrome.storage.sync.get({ customTitles: {} }, (data) => {
+        const updated = { ...data.customTitles };
+        updated[tab.id] = newTitle;
+
+        chrome.storage.sync.set({ customTitles: updated }, () => {
+          chrome.tabs.reload(tab.id); // <-- IMPORTANT
+        });
+      });
+    });
+  };
+
+  resetBtn.onclick = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab) return;
+
+      chrome.storage.sync.get({ customTitles: {} }, (data) => {
+        const updated = { ...data.customTitles };
+        delete updated[tab.id];
+
+        chrome.storage.sync.set({ customTitles: updated }, () => {
+          chrome.tabs.reload(tab.id); // <-- IMPORTANT
+        });
+      });
+    });
+  };
+
+
+
+  // ---------------- EMOJI PICKER ----------------
   const picker = document.createElement("div");
-  picker.className = "emoji-picker";
-  Object.assign(picker.style, {
-    position: "absolute",
-    display: "none",
-    background: "#fff",
-    border: "1px solid #ccc",
-    padding: "6px",
-    zIndex: 1000
-  });
+  picker.style.position = "absolute";
+  picker.style.display = "none";
+  picker.style.background = "#fff";
+  picker.style.border = "1px solid #ccc";
+  picker.style.padding = "6px";
+  picker.style.zIndex = 1000;
 
-  let activeInput = null; // input element that requested the picker
-  let activeIndex = null; // rule index (if editing an existing rule)
+  let activeInput = null;
+  let activeIndex = null;
 
-  // Populate picker with emoji buttons
-  EMOJIS.forEach((emoji) => {
-    const node = document.createElement("span");
-    node.textContent = emoji;
-    node.style.cursor = "pointer";
-    node.style.fontSize = "18px";
-    node.style.padding = "4px";
+  EMOJIS.forEach(e => {
+    const s = document.createElement("span");
+    s.textContent = e;
+    s.style.cursor = "pointer";
+    s.style.fontSize = "18px";
+    s.style.padding = "4px";
 
-    node.addEventListener("click", (ev) => {
+    s.onclick = ev => {
       ev.stopPropagation();
       if (!activeInput) return;
-      activeInput.value = emoji;
-      if (activeIndex !== null) updateRule(activeIndex, { emoji });
-      picker.style.display = "none";
-    });
 
-    picker.appendChild(node);
+      activeInput.value = e;
+      if (activeIndex !== null) updateRule(activeIndex, { emoji: e });
+      picker.style.display = "none";
+    };
+
+    picker.appendChild(s);
   });
 
   document.body.appendChild(picker);
 
   function wireEmojiInput(input, index = null) {
-    // Show emoji picker positioned below the input when focused
     input.addEventListener("focus", () => {
       const r = input.getBoundingClientRect();
-      picker.style.left = `${r.left}px`;
-      picker.style.top = `${r.bottom}px`;
+      picker.style.left = r.left + "px";
+      picker.style.top = r.bottom + "px";
       picker.style.display = "block";
       activeInput = input;
       activeIndex = index;
     });
 
-    // Keep only the first character (emoji) and immediately persist
     input.addEventListener("input", () => {
       const chars = [...input.value];
       input.value = chars[0] || "";
@@ -122,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", e => {
     if (!picker.contains(e.target) && !e.target.classList.contains("emoji")) {
       picker.style.display = "none";
       activeInput = null;
@@ -132,19 +133,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wireEmojiInput(newEmoji);
 
-  // --- Rule rendering / editing ---
-  function render(rules) {
+  // ---------------- SETTINGS ----------------
+  chrome.storage.sync.get({ enabled: true, emojiSeparator: " • " }, d => {
+    enabledToggle.checked = d.enabled;
+    sepSelect.value = d.emojiSeparator;
+  });
+
+  enabledToggle.onchange = () => {
+    chrome.storage.sync.set({ enabled: enabledToggle.checked });
+  };
+
+  sepSelect.onchange = () => {
+    chrome.storage.sync.set({ emojiSeparator: sepSelect.value });
+  };
+
+  // ---------------- RENDER ----------------
+  function render(rules, maxRules = 7) {
     rulesDiv.innerHTML = "";
-    (rules || []).slice(0, MAX_RULES).forEach((rule, index) => {
+
+    const visibleRules = rules.slice(0, maxRules);
+
+    visibleRules.forEach((rule, index) => {
       const row = document.createElement("div");
       row.className = "rule";
+      row.dataset.index = index;
 
-      // Keep markup small and predictable; attach listeners afterwards
       row.innerHTML = `
-        <span class="drag">☰</span>
-        <input class="emoji" value="${rule.emoji || ""}">
-        <input class="prefix" value="${rule.prefix || ""}">
-        <input class="match" value="${rule.match || ""}">
+        <span class="drag">⠿</span>
+        <input class="emoji" type="text" value="${rule.emoji || ""}">
+        <input class="prefix" type="text" value="${rule.prefix}">
+        <input class="match" type="text" value="${rule.match}">
         <select class="type">
           <option value="keyword" ${rule.type === "keyword" ? "selected" : ""}>keyword</option>
           <option value="url" ${rule.type === "url" ? "selected" : ""}>url</option>
@@ -154,18 +172,43 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="del">✕</button>
       `;
 
+      const dragHandle = row.querySelector(".drag");
+      row.draggable = false;
+
+      dragHandle.addEventListener("mousedown", () => {
+        row.draggable = true;
+      });
+
+      row.addEventListener("dragstart", () => {
+        row.classList.add("dragging");
+      });
+
+      row.addEventListener("dragend", () => {
+        row.classList.remove("dragging");
+        row.draggable = false;
+        saveOrder(maxRules);
+      });
+
       wireEmojiInput(row.querySelector(".emoji"), index);
 
-      row.querySelector(".prefix").onchange = (e) => updateRule(index, { prefix: cleanPrefix(e.target.value) });
-      row.querySelector(".match").onchange = (e) => updateRule(index, { match: e.target.value.toLowerCase() });
-      row.querySelector(".type").onchange = (e) => updateRule(index, { type: e.target.value });
-      row.querySelector(".toggle").onchange = (e) => updateRule(index, { enabled: e.target.checked });
+      row.querySelector(".prefix").onchange = e =>
+        updateRule(index, { prefix: cleanPrefix(e.target.value) });
+
+      row.querySelector(".match").onchange = e =>
+        updateRule(index, { match: e.target.value.toLowerCase() });
+
+      row.querySelector(".type").onchange = e =>
+        updateRule(index, { type: e.target.value });
+
+      row.querySelector(".toggle").onchange = e =>
+        updateRule(index, { enabled: e.target.checked });
+
       row.querySelector(".del").onclick = () => deleteRule(index);
 
       rulesDiv.appendChild(row);
     });
 
-    if ((rules || []).length > MAX_RULES) {
+    if (rules.length > maxRules) {
       const more = document.createElement("button");
       more.textContent = "See more";
       more.onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL("manager.html") });
@@ -173,71 +216,85 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ---------------- DRAG ----------------
+  rulesDiv.addEventListener("dragover", e => {
+    e.preventDefault();
+    const dragging = document.querySelector(".dragging");
+    if (!dragging) return;
+
+    const afterElement = getDragAfterElement(rulesDiv, e.clientY);
+    if (!afterElement) rulesDiv.appendChild(dragging);
+    else rulesDiv.insertBefore(dragging, afterElement);
+  });
+
+  function getDragAfterElement(container, y) {
+    const elements = [...container.querySelectorAll(".rule:not(.dragging)")];
+    return elements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  function saveOrder(maxRules) {
+    const rows = [...rulesDiv.querySelectorAll(".rule")];
+
+    chrome.storage.sync.get({ rules: [] }, data => {
+      const fullRules = [...data.rules];
+      const visibleOriginal = fullRules.slice(0, maxRules);
+
+      const reorderedVisible = rows.map(row => {
+        const oldIndex = parseInt(row.dataset.index);
+        return visibleOriginal[oldIndex];
+      });
+
+      const newRules = [
+        ...reorderedVisible,
+        ...fullRules.slice(maxRules)
+      ];
+
+      chrome.storage.sync.set({ rules: newRules }, () => {
+        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+          render(newRules, s.popupLimit);
+        });
+      });
+    });
+  }
+
   function updateRule(index, patch) {
-    // Patch a rule at index and re-render.
-    chrome.storage.sync.get({ rules: [] }, (d) => {
-      if (!d.rules[index]) return; // defensive
+    chrome.storage.sync.get({ rules: [] }, d => {
+      if (!d.rules[index]) return;
       Object.assign(d.rules[index], patch);
-      chrome.storage.sync.set({ rules: d.rules }, () => render(d.rules));
+      chrome.storage.sync.set({ rules: d.rules }, () => {
+        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+          render(d.rules, s.popupLimit);
+        });
+      });
     });
   }
 
   function deleteRule(index) {
-    chrome.storage.sync.get({ rules: [] }, (d) => {
+    chrome.storage.sync.get({ rules: [] }, d => {
       d.rules.splice(index, 1);
-      chrome.storage.sync.set({ rules: d.rules }, () => render(d.rules));
+      chrome.storage.sync.set({ rules: d.rules }, () => {
+        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+          render(d.rules, s.popupLimit);
+        });
+      });
     });
   }
 
-  // --- Custom title controls ---
-
-  applyBtn.onclick = () => {
-  const value = (input.value || "").trim();
-  if (!value) return;
-
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs?.[0];
-    if (!tab?.id) return;
-
-    chrome.storage.sync.get({ customTitles: {} }, (data) => {
-      const customTitles = data.customTitles;
-      customTitles[tab.id] = value;
-
-      chrome.storage.sync.set({ customTitles }, () => {
-        chrome.tabs.reload(tab.id);
-      });
-    });
-  });
-};
-
-resetBtn.onclick = () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs?.[0];
-    if (!tab?.id) return;
-
-    chrome.storage.sync.get({ customTitles: {} }, (data) => {
-      const customTitles = data.customTitles;
-      delete customTitles[tab.id];
-
-      chrome.storage.sync.set({ customTitles }, () => {
-        chrome.tabs.reload(tab.id);
-      });
-    });
-  });
-};
-
-  
-  
-  
-  
-
-  // --- Add new rule ---
+  // ---------------- ADD RULE ----------------
   addBtn.onclick = () => {
     if (!newPrefix.value || !newMatch.value) return;
 
-    chrome.storage.sync.get({ rules: [] }, (d) => {
+    chrome.storage.sync.get({ rules: [] }, d => {
       d.rules.unshift({
-        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+        id: crypto.randomUUID(),
         emoji: newEmoji.value || "",
         prefix: cleanPrefix(newPrefix.value),
         match: newMatch.value.toLowerCase(),
@@ -249,11 +306,16 @@ resetBtn.onclick = () => {
         newEmoji.value = "";
         newPrefix.value = "";
         newMatch.value = "";
-        render(d.rules);
+
+        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+          render(d.rules, s.popupLimit);
+        });
       });
     });
   };
 
-  // Initial render
-  chrome.storage.sync.get({ rules: [] }, (d) => render(d.rules || []));
+  chrome.storage.sync.get({ rules: [], popupLimit: 7 }, d => {
+    render(d.rules, d.popupLimit);
+  });
+
 });
