@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tab.title && !input.value) input.value = tab.title;
   });
 
-  // ---------------- CUSTOM TITLE ----------------
   // ---------------- CUSTOM TAB NAME ----------------
 
   applyBtn.onclick = () => {
@@ -148,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ---------------- RENDER ----------------
-  function render(rules, maxRules = 7) {
+  function render(rules, maxRules = 3) {
     rulesDiv.innerHTML = "";
 
     const visibleRules = rules.slice(0, maxRules);
@@ -258,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
 
       chrome.storage.sync.set({ rules: newRules }, () => {
-        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+        chrome.storage.sync.get({ popupLimit: 3 }, s => {
           render(newRules, s.popupLimit);
         });
       });
@@ -270,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!d.rules[index]) return;
       Object.assign(d.rules[index], patch);
       chrome.storage.sync.set({ rules: d.rules }, () => {
-        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+        chrome.storage.sync.get({ popupLimit: 3 }, s => {
           render(d.rules, s.popupLimit);
         });
       });
@@ -281,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.sync.get({ rules: [] }, d => {
       d.rules.splice(index, 1);
       chrome.storage.sync.set({ rules: d.rules }, () => {
-        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+        chrome.storage.sync.get({ popupLimit: 3 }, s => {
           render(d.rules, s.popupLimit);
         });
       });
@@ -307,14 +306,14 @@ document.addEventListener("DOMContentLoaded", () => {
         newPrefix.value = "";
         newMatch.value = "";
 
-        chrome.storage.sync.get({ popupLimit: 7 }, s => {
+        chrome.storage.sync.get({ popupLimit: 3}, s => {
           render(d.rules, s.popupLimit);
         });
       });
     });
   };
 
-  chrome.storage.sync.get({ rules: [], popupLimit: 7 }, d => {
+  chrome.storage.sync.get({ rules: [], popupLimit: 3 }, d => {
     render(d.rules, d.popupLimit);
   });
 
