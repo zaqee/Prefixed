@@ -158,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.dataset.index = index;
 
       row.innerHTML = `
+      <div class="rule-item">
         <span class="drag">⠿</span>
         <input class="emoji" type="text" value="${rule.emoji || ""}">
         <input class="prefix" type="text" value="${rule.prefix}">
@@ -169,6 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </select>
         <input class="toggle" type="checkbox" ${rule.enabled ? "checked" : ""}>
         <button class="del">✕</button>
+      </div>
       `;
 
       const dragHandle = row.querySelector(".drag");
@@ -210,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rules.length > maxRules) {
       const more = document.createElement("button");
       more.textContent = "See more";
+      more.className = "btn btn-secondary";
       more.onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL("manager.html") });
       rulesDiv.appendChild(more);
     }
