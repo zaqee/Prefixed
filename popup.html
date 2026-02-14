@@ -439,6 +439,59 @@
     #rules::-webkit-scrollbar-thumb:hover {
       background: #9ca3af;
     }
+
+    /* buy me a coffee link */
+    .support-row {
+      gap: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .support-btn {
+      font-family: 'Cascadia Code', monospace;
+      font-size: 9px;
+      /* Slightly smaller to fit side-by-side */
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      padding: 10px 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 2px solid black;
+      transition: all 150ms;
+      font-weight: 600;
+      flex: 1;
+      width: 50%;
+      /* Makes both buttons equal width */
+    }
+
+    /* Black Button */
+    .btn-bmc {
+      background: black;
+      color: white;
+    }
+
+    .btn-bmc:hover {
+      background: #1f2937;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    /* White Button */
+    .btn-kofi {
+      background: white;
+      color: black;
+    }
+
+    .btn-kofi:hover {
+      background: #f9fafb;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+    }
+
+    .support-btn:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 
@@ -521,6 +574,19 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Support Project -->
+    <div class="section-title">Support Project</div>
+    <div class="support-row">
+      <a href="https://www.buymeacoffee.com/zaqee" target="_blank" class="support-btn btn-bmc">
+        <span>☕</span> Buy me a coffee
+      </a>
+      <a href="https://ko-fi.com/zaqee" target="_blank" class="support-btn btn-kofi">
+        <span>❤️</span> Support on Ko-fi
+      </a>
     </div>
   </div>
 

@@ -103,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.dataset.index = index;
 
       row.innerHTML = `
+      <div class="rule-item">
         <span class="drag">⠿</span>
         <input class="emoji" type="text" value="${rule.emoji || ""}">
         <input class="prefix" type="text" value="${rule.prefix}">
@@ -113,6 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <option value="extension" ${rule.type === "extension" ? "selected" : ""}>extension</option>
         </select>
         <button class="del">✕</button>
+      </div>
       `;
 
       // Enable dragging only from ⠿

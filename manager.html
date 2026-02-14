@@ -8,26 +8,27 @@
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500;600&display=swap');
 
+    /* Global Reset & Base Styles */
     * {
-      margin: 2px;
-      padding: 0px;
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
 
     body {
       font-family: 'Cascadia Code', monospace;
-      min-width: 320px;
-      max-width: 99%;
-      width: 100%;
       background: white;
       color: black;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Header */
+    /* Header Styling */
     .header {
       background: black;
       color: white;
-      padding: 16px;
+      padding: 16px 24px;
       border-bottom: 2px solid black;
       display: flex;
       align-items: center;
@@ -36,196 +37,80 @@
 
     .header h1 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px;
+      font-size: 18px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       font-weight: 600;
     }
 
-    .toggle-container {
+    /* Main Grid Layout */
+    .manager-container {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      user-select: none;
+      flex: 1;
+      height: calc(100vh - 52px);
+      /* Subtract header height */
     }
 
-    .toggle-label {
-      font-size: 12px;
-      opacity: 0.7;
-      transition: opacity 150ms;
+    /* LEFT COLUMN: Rules List (Ratio 3) */
+    .rules-column {
+      flex: 3;
+      padding: 24px;
+      overflow-y: auto;
+      border-right: 1px solid #e5e7eb;
     }
 
-    .toggle-container:hover .toggle-label {
-      opacity: 1;
+    /* RIGHT COLUMN: Settings & Add Form (Ratio 1) */
+    .settings-column {
+      flex: 1;
+      min-width: 340px;
+      padding: 24px;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* Custom Toggle Switch */
-    .toggle-switch {
-      position: relative;
-      width: 48px;
-      height: 24px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-track {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: all 200ms;
-    }
-
-    .toggle-switch input:checked+.toggle-track {
-      background: rgba(255, 255, 255, 0.9);
-    }
-
-    .toggle-switch input:focus+.toggle-track {
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
-    }
-
-    .toggle-thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: all 200ms;
-    }
-
-    .toggle-switch input:checked~.toggle-thumb {
-      transform: translateX(24px);
-      background: black;
-    }
-
-    /* Main Content */
-    .content {
-      padding: 16px;
-    }
-
-    .section {
-      margin-bottom: 20px;
-    }
-
+    /* Re-using Your Specific Section Styles */
     .section-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 11px;
+      font-size: 14px;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #6b7280;
+      letter-spacing: 0.12em;
+      color: #020202;
       margin-bottom: 8px;
     }
 
     .separator {
-      height: 2px;
+      height: 1px;
       background: #e5e7eb;
-      margin: 20px 0;
+      margin: 14px 0;
     }
 
-    /* Inputs */
+    /* Input & Select Styling */
     input[type="text"],
+    input[type="number"],
     input[type="search"],
-    input[type="number"] {
-      font-family: 'Cascadia Code', monospace;
-      font-size: 12px;
-      padding: 8px 12px;
-      border: 2px solid #d1d5db;
-      background: white;
-      transition: border-color 150ms;
-      outline: none;
-    }
-
     select {
       font-family: 'Cascadia Code', monospace;
       font-size: 12px;
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: 2px solid #d1d5db;
       background: white;
       transition: border-color 150ms;
       outline: none;
+      width: 100%;
     }
 
-    input[type="text"]:focus,
-    input[type="search"]:focus,
+    input:focus,
     select:focus {
       border-color: black;
     }
 
-    select {
-      cursor: pointer;
-    }
-
-    /* Buttons */
-    button {
-      font-family: 'Cascadia Code', monospace;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 8px 16px;
-      border: 2px solid;
-      cursor: pointer;
-      transition: all 150ms;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    button:active {
-      transform: scale(0.95);
-    }
-
-    .btn-primary {
-      background: black;
-      color: white;
-      border-color: black;
-    }
-
-    .btn-primary:hover {
-      background: #1f2937;
-    }
-
-    .btn-secondary {
-      background: white;
-      color: black;
-      border-color: #d1d5db;
-    }
-
-    .btn-secondary:hover {
-      background: #f3f4f6;
-      border-color: black;
-    }
-
-    /* Custom Title Section */
-    .title-controls {
-      display: flex;
-      gap: 8px;
-    }
-
-    #customTitle {
-      flex: 1;
-    }
-
-    .btn-icon {
-      padding: 8px 12px;
-    }
-
-    /* Rules */
+    /* Rules List Items */
     #rules {
-      max-height: 600px;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .rule-item {
@@ -234,7 +119,7 @@
       gap: 8px;
       background: #f9fafb;
       border: 2px solid #e5e7eb;
-      padding: 8px;
+      padding: 10px;
       transition: all 150ms;
     }
 
@@ -246,292 +131,275 @@
     .drag {
       cursor: grab;
       color: #d1d5db;
-      transition: color 150ms;
-      line-height: 0;
+      font-size: 12px;
+      width: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .rule-item:hover .drag {
       color: black;
     }
 
-    .drag:active {
-      cursor: grabbing;
-    }
-
     .emoji {
-      width: 48px;
+      max-width: 50px;
+      max-height: 50px;
       text-align: center;
-      font-size: 18px;
-      user-select: none;
+      font-size: 24px;
+      border: 2px solid #d1d5db;
+      background: white;
+      flex-shrink: 0;
     }
 
-    .rule-content {
+    .prefix {
       flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 12px;
-    }
-
-    .rule-prefix {
+      width: 120px;
       font-weight: 600;
-      color: black;
-      min-width: 50px;
-    }
-
-    .rule-match {
-      flex: 1;
-      color: #6b7280;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .rule-type {
-      font-size: 9px;
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #9ca3af;
-      background: #f3f4f6;
-      padding: 2px 6px;
-      border: 1px solid #e5e7eb;
+      letter-spacing: 0.02em;
+      padding: 5px 8px;
+      border: 2px solid #d1d5db;
+      background: white;
     }
 
-    .btn-delete {
-      width: 24px;
-      height: 24px;
-      padding: 0;
+    .match {
+      flex: 3;
+      color: #000000;
+      font-size: 11px;
+      font-weight: 100;
+      padding: 5px 8px;
+      border: 2px solid #d1d5db;
+      background: white;
+    }
+
+    .type {
+      flex: 1;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #000000;
+      background: #ffffff;
+      padding: 6px 8px;
+      border: 2px solid #d1d5db;
+      flex-shrink: 0;
+    }
+
+    .del {
+      width: 26px;
+      height: 26px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #d1d5db;
-      background: transparent;
+      color: #000000;
+      background: #ffffff;
       border: 1px solid transparent;
-      opacity: 0;
+      cursor: pointer;
       transition: all 150ms;
-      font-size: 14px;
     }
 
-    .rule-item:hover .btn-delete {
-      opacity: 1;
-    }
-
-    .btn-delete:hover {
+    .del:hover {
       color: white;
       background: black;
-      border-color: black;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 24px;
-      color: #9ca3af;
-      font-size: 12px;
-      border: 2px dashed #e5e7eb;
-    }
-
-    /* Emoji Separator */
-    #emojiSeparator {
+    /* Button Styling */
+    .btn-primary {
+      font-family: 'Cascadia Code', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px;
+      cursor: pointer;
+      background: black;
+      color: white;
+      border: 2px solid black;
       width: 100%;
+      transition: all 150ms;
     }
 
-    /* Add New Rule */
+    .btn-primary:hover {
+      background: #1f2937;
+    }
+
+    /* Form Layouts */
     .add-rule-form {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .input-row {
       display: flex;
+      gap: 6px;
+      flex-direction: column;
+    }
+
+    .input-row label {
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #000000;
+      margin-bottom: 2px;
+    }
+
+    /* Scrollbar Styling */
+    .rules-column::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .rules-column::-webkit-scrollbar-track {
+      background: #f3f4f6;
+    }
+
+    .rules-column::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border: 2px solid #f3f4f6;
+    }
+
+    .rules-column::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+
+    .popup-limit-container h3 {
+      font-size: 10px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    /* support */
+    .support-row {
+      display: flex;
       gap: 8px;
     }
 
-    #newEmoji {
-      width: 48px;
-      text-align: center;
-      font-size: 16px;
-    }
-
-    #newPrefix {
-      width: 96px;
+    .support-btn {
+      font-family: 'Cascadia Code', monospace;
+      font-size: 12px;
+      /* Slightly smaller to fit side-by-side */
       text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    #newMatch {
-      flex: 1;
-    }
-
-    #newType {
-      flex: 1;
-    }
-
-    /* Section header with subtitle */
-    .section-header {
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      padding: 10px 5px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
+      justify-content: center;
+      gap: 6px;
+      border: 2px solid black;
+      transition: all 150ms;
+      font-weight: 600;
+      flex: 1;
+      /* Makes both buttons equal width */
     }
 
-    .section-subtitle {
-      font-size: 10px;
-      color: #9ca3af;
+    /* Black Button */
+    .btn-bmc {
+      background: black;
+      color: white;
     }
 
-    /* Icons (using Unicode) */
-    .icon {
-      display: inline-block;
-      line-height: 1;
+    .btn-bmc:hover {
+      background: #1f2937;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 400px) {
-      .header {
-        padding: 12px;
-      }
-
-      .header h1 {
-        font-size: 14px;
-      }
-
-      .content {
-        padding: 12px;
-      }
-
-      .toggle-label {
-        display: none;
-      }
-
-      button {
-        padding: 6px 12px;
-        font-size: 11px;
-      }
-
-      .btn-icon {
-        padding: 6px 8px;
-      }
-
-      #newEmoji {
-        width: 40px;
-      }
-
-      #newPrefix {
-        width: 80px;
-      }
-
-      .rule-prefix {
-        min-width: 40px;
-      }
-
-      .input-row {
-        flex-wrap: wrap;
-      }
-
-      .input-row>input[type="text"]:not(#newEmoji):not(#newPrefix) {
-        flex: 1 1 100%;
-      }
+    /* White Button */
+    .btn-kofi {
+      background: white;
+      color: black;
     }
 
-    @media (min-width: 500px) {
-      .header {
-        padding: 20px;
-      }
+    .btn-kofi:hover {
+      background: #f9fafb;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+    }
 
-      .content {
-        padding: 20px;
-      }
-
-      .section {
-        margin-bottom: 24px;
-      }
-
-      input[type="text"],
-      input[type="search"],
-      select {
-        font-size: 13px;
-        padding: 10px 14px;
-      }
-
-      button {
-        font-size: 13px;
-        padding: 10px 18px;
-      }
+    .support-btn:active {
+      transform: scale(0.95);
     }
   </style>
 </head>
 
 <body>
-  <!-- Header with Toggle -->
   <div class="header">
-    <h1>[PRE]fixed</h1>
-    <!---<label class="toggle-container">
-      <span class="toggle-label" id="toggleStatus">OFF</span>
-      <div class="toggle-switch">
-        <input type="checkbox" id="enabled">
-        <div class="toggle-track"></div>
-        <div class="toggle-thumb"></div>
-      </div>
-    </label> -->
-  </div>
-  <hr>
-  <!-- Prefix number config -->
-  <div class="content">
-    <h3>
-      Number of Prefixes shown in POPUP menu:
-      <input type="number" id="popupLimit" min="1" max="50" style="width: 120px;">
-    </h3>
-  </div>
-  <div class="separator"></div>
-
-  <!-- Priority Rules -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Priority Rules</div>
-      <div class="section-subtitle">Top wins</div>
-    </div>
-    <div id="rules">
-      <!-- Rules will be inserted here by JavaScript -->
-    </div>
+    <h1>[PRE]fixed / DASHBOARD</h1>
   </div>
 
-  <div class="separator"></div>
-
-  <!-- Emoji Separator -->
-  <div class="section">
-    <div class="section-title">Emoji Separator</div>
-    <select id="emojiSeparator">
-      <option value=" • ">• (bullet)</option>
-      <option value=" - ">- (dash)</option>
-      <option value=" | ">| (pipe)</option>
-      <option value=" ">(space)</option>
-    </select>
-  </div>
-
-  <div class="separator"></div>
-
-  <!-- Add New Rule -->
-  <div class="section">
-    <div class="section-title">Add New Prefix</div>
-    <div class="add-rule-form">
-      <div class="input-row">
-        <input type="text" id="newEmoji" placeholder="🙂">
-        <input type="text" id="newPrefix" placeholder="PREFIX">
-        <input type="text" id="newMatch" placeholder="keyword / url / .ext">
-      </div>
-      <div class="input-row">
-        <select id="newType">
-          <option value="keyword">Keyword Match</option>
-          <option value="url">URL Match</option>
-          <option value="extension">Extension Match</option>
-        </select>
-        <button id="add" class="btn-primary">
-          <span class="icon">+</span> Add Rule
-        </button>
+  <div class="manager-container">
+    <div class="rules-column">
+      <div class="section-title">Priority Rules (Top Wins)</div>
+      <div id="rules">
       </div>
     </div>
-  </div>
+
+    <div class="settings-column">
+
+      <div class="section">
+        <div class="section-title">Add New Prefix</div>
+        <div class="add-rule-form">
+          <div style="display: flex; gap: 6px;">
+            <div style="flex: 1;">
+              <input type="text" id="newEmoji" placeholder="🙂" class="emoji" style="width: 100%; height: 38px;">
+            </div>
+            <div style="flex: 3;">
+              <input type="text" id="newPrefix" placeholder="PREFIX"
+                style="height: 38px; text-transform: uppercase; font-weight: 600;">
+            </div>
+          </div>
+
+          <div class="input-row">
+            <label>Match Pattern</label>
+            <input type="text" id="newMatch" placeholder="keyword / url / .ext">
+          </div>
+
+          <div class="input-row">
+            <label>Match Type</label>
+            <select id="newType">
+              <option value="keyword">Keyword Match</option>
+              <option value="url">URL Match</option>
+              <option value="extension">Extension Match</option>
+            </select>
+          </div>
+
+          <button id="add" class="btn-primary" style="margin-top: 5px;">
+            <span>+</span> Add Rule
+          </button>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="section">
+        <div class="section-title">Global Settings</div>
+
+        <div class="input-row" style="margin-bottom: 16px;">
+          <label>Emoji Separator</label>
+          <select id="emojiSeparator">
+            <option value=" • ">• (bullet)</option>
+            <option value=" - ">- (dash)</option>
+            <option value=" | ">| (pipe)</option>
+            <option value=" ">(space)</option>
+          </select>
+        </div>
+
+        <div class="popup-limit-container">
+          <h3>Number of Prefixes shown in POPUP menu:</h3>
+          <input type="number" id="popupLimit" min="1" max="50" value="10">
+        </div>
+      </div>
+      <div class="separator"></div>
+      <div class="section-title">Support Project</div>
+      <div class="support-row">
+        <a href="https://www.buymeacoffee.com/zaqee" target="_blank" class="support-btn btn-bmc">
+          <span>☕</span> Buy me a coffee
+        </a>
+        <a href="https://ko-fi.com/zaqee" target="_blank" class="support-btn btn-kofi">
+          <span>❤️</span> Support on Ko-fi
+        </a>
+      </div>
+    </div>
   </div>
 
   <script src="manager.js"></script>
+</body>
+
+</html>

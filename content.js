@@ -54,24 +54,62 @@
 
     return false;
   }
+  function scoreRule(rule, url, title) {
+    if (!rule || !rule.enabled) return -1;
+
+    const u = (url || "").toLowerCase();
+    const t = (title || "").toLowerCase();
+    const match = (rule.match || "").toLowerCase();
+
+    let score = 0;
+
+    // BASE WEIGHTS
+    if (rule.type === "extension" && u.includes(match)) score += 90;
+
+    if (rule.type === "url" && u.includes(match)) score += 70;
+    const body = document.body?.innerText?.slice(0, 5000).toLowerCase() || "";
+
+
+    if (rule.type === "keyword") {
+      const words = match.split(/\s+/);
+      if (words.some(k => k && t.includes(k))) score += 120;     // title strong
+      else if (words.some(k => k && u.includes(k))) score += 50; // url weaker
+      else if (words.some(k => k && body.includes(k))) score += 70; // body weaker
+    }
+
+    // SPECIFICITY
+    score += match.length;
+
+    // USER BOOST
+    score += rule.priorityBoost || 0;
+
+    return score;
+  }
 
   // Resolve the prefix for a page given rules and a separator for emoji.
   // Returns a string like "📕 • [PDF]" or just "[PDF]" or null if none apply.
   function resolvePrefix(url, title, rules, sep) {
     if (!rules || !Array.isArray(rules)) return null;
-    for (const rule of rules) {
-      try {
-        if (ruleMatches(rule, url, title)) {
-          if (rule.emoji) return `${rule.emoji}${sep}${rule.prefix}`;
-          return rule.prefix;
-        }
-      } catch (err) {
-        // Defensive: ignore faulty rules but continue
-        console.warn("Prefix rule error", err, rule);
+
+    let bestRule = null;
+    let bestScore = -1;
+
+    rules.forEach((rule, index) => {
+      const s = scoreRule(rule, url, title);
+
+      if (s > bestScore) {
+        bestScore = s;
+        bestRule = rule;
       }
-    }
-    return null;
+      // tie → earlier in list wins automatically
+    });
+
+    if (!bestRule || bestScore <= 0) return null;
+
+    if (bestRule.emoji) return `${bestRule.emoji}${sep}${bestRule.prefix}`;
+    return bestRule.prefix;
   }
+
 
   // Apply prefix logic to the current tab title. This function is safe to run
   // repeatedly; it will avoid re-writing the title if nothing changed.
